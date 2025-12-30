@@ -20,6 +20,10 @@ func InitGin(
 	adminOrderHdl *web.AdminOrderHandler,
 	adminCategoryHdl *web.AdminCategoryHandler,
 	adminPromotionHdl *web.AdminPromotionHandler,
+	UserProductHdl *web.UserProductHandler,
+	AdminLoginLogHdl *web.AdminLoginLogHandler,
+	AdminStatsHdl *web.AdminStatsHandler,
+
 ) *gin.Engine {
 
 	server := gin.New()        // ❗不使用 gin.Default()
@@ -34,6 +38,9 @@ func InitGin(
 	adminOrderHdl.RegisterAdminOrderRouters(server)
 	adminCategoryHdl.RegisterAdminCategoryRouters(server)
 	adminPromotionHdl.RegisterAdminPromotionRouters(server)
+	UserProductHdl.RegisterUserProductRouters(server)
+	AdminLoginLogHdl.RegisterAdminLoginLogRouters(server)
+	AdminStatsHdl.RegisterAdminStatsRouters(server)
 	return server
 }
 
@@ -43,12 +50,16 @@ func InitMiddlewares(db *mongo.Client, log domain.Loggers) []gin.HandlerFunc {
 		//身份验证
 		middleware.NewLoginJWTMiddlewareBuilder().
 			IgnorePaths("/users/register").
-			IgnorePaths("/users/login").Build(),
+			IgnorePaths("/users/login").
+			IgnorePaths("/api/v1/user/products").
+			IgnorePaths("/api/v1/user/products/").Build(),
 
 		//配置api验证
 		middleware.NewApiAuth(db, log).
 			IgnorePaths("/users/register").
 			IgnorePaths("/users/login").
+			IgnorePaths("/api/v1/user/products"). // 同理
+			IgnorePaths("/api/v1/user/products/").
 			Build(),
 	}
 }

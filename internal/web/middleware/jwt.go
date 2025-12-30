@@ -24,10 +24,17 @@ func (l *LoginJWTMiddlewareBuilder) IgnorePaths(path string) *LoginJWTMiddleware
 }
 func (l *LoginJWTMiddlewareBuilder) Build() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		//忽略路径
-		//如果是登录和注册不需要校验
+		reqPath := c.Request.URL.Path
+
+		// 忽略路径：支持精确匹配 + 前缀匹配（以 / 结尾表示前缀）
 		for _, path := range l.paths {
-			if c.Request.URL.Path == path {
+			// 精确匹配
+			if reqPath == path {
+				c.Next()
+				return
+			}
+			// 前缀匹配：例如 path = "/api/v1/user/products/"，则忽略 "/api/v1/user/products/xxx"
+			if strings.HasSuffix(path, "/") && strings.HasPrefix(reqPath, path) {
 				c.Next()
 				return
 			}

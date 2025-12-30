@@ -33,12 +33,18 @@ type UserServiceInterface interface {
 type UserService struct {
 	repo     repository.UserRepoInterface
 	roleRepo repository.RoleRepoInterface
+	logSvc   LoginLogInterface
 }
 
-func NewUserService(repo repository.UserRepoInterface, roleRepo repository.RoleRepoInterface) UserServiceInterface {
+func NewUserService(
+	repo repository.UserRepoInterface,
+	roleRepo repository.RoleRepoInterface,
+	logSvc LoginLogInterface,
+) *UserService {
 	return &UserService{
 		repo:     repo,
 		roleRepo: roleRepo,
+		logSvc:   logSvc,
 	}
 }
 
@@ -90,26 +96,32 @@ func (svc *UserService) Login(ctx context.Context, phone string, password string
 	if err != nil {
 		return nil, err
 	}
-	role, err := svc.roleRepo.FindRoleById(ctx, user.Role)
 
+	role, err := svc.roleRepo.FindRoleById(ctx, user.Role)
 	if err != nil {
 		return nil, err
 	}
-	// 判断密码是否正确
-	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
-	if err != nil {
+
+	// 校验密码
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
 		return nil, ErrFalsePassword
 	}
 
-	// 生成token
+	// 生成 token
 	tokenString, err := createToken(user.Id)
 	if err != nil {
 		return nil, err
 	}
 
+	// ===== 新增：记录登录日志（不影响主流程） =====
+	if ginCtx, ok := ctx.(*gin.Context); ok {
+		_ = svc.logSvc.Add(ginCtx, user.Id, domain.LoginRoleUser)
+	}
+	// ============================================
+
 	user.Password = ""
 	return gin.H{
-		"token": "Bearer" + " " + tokenString,
+		"token": "Bearer " + tokenString,
 		"user":  user,
 		"role":  role,
 	}, nil

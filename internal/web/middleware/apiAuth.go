@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"society/internal/domain"
 	"society/internal/repository/dao"
+	"strings"
 
 	"gitee.com/qsxwdc711/pkgx/ginx"
 	"github.com/gin-gonic/gin"
@@ -35,24 +36,32 @@ func (l *ApiAuth) IgnorePaths(path string) *ApiAuth {
 
 func (l *ApiAuth) Build() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// 1) 忽略路径：命中后要 Next()
+		// 1) 取路由模板（优先 FullPath），用于：忽略匹配 + api 表匹配 + role 权限匹配
+		full := c.FullPath()
+		if full == "" {
+			// 没有匹配到路由模板（可能是 404/OPTIONS/未注册）
+			// 建议直接放过，让后续路由/404处理
+			c.Next()
+			return
+		}
+
+		// 2) 忽略路径：支持 精确匹配 + 前缀匹配（以 / 结尾表示前缀）
 		for _, path := range l.paths {
-			if c.Request.URL.Path == path {
+			// 精确
+			if full == path {
+				c.Next()
+				return
+			}
+			// 前缀（用于 /xxx/:id 这种）
+			if strings.HasSuffix(path, "/") && strings.HasPrefix(full, path) {
 				c.Next()
 				return
 			}
 		}
 
-		// 2) 用 FullPath 取“路由模板”，与 engine.Routes() 写入 api 表一致
-		url := c.FullPath()
-		if url == "" {
-			// 如果没匹配到路由（比如 404），直接放过或拦截都行
-			c.JSON(http.StatusForbidden, ginx.ErrorMess("验证api：路由未注册", nil))
-			c.Abort()
-			return
-		}
+		// 3) 继续权限校验：用 FullPath 模板与 api 表一致
+		url := full
 		method := c.Request.Method
-
 		// 查找api
 		var api dao.Api
 		apiCol := l.mongodb.Collection("api")
