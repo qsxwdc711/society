@@ -31,6 +31,9 @@ func InitWebServer() *App {
 		dao.NewLoginLogDao,
 		dao.NewProductViewDao,
 		dao.NewUserProductDao,
+		dao.NewFavoriteDao,
+		dao.NewCartDao,
+		dao.NewUserOrderDao,
 		repository.NewUserRepo,
 		repository.NewRoleRepo,
 		repository.NewLogRepository,
@@ -43,6 +46,10 @@ func InitWebServer() *App {
 		repository.NewStatsRepo,
 		repository.NewLoginLogRepo,
 		repository.NewUserProductRepo,
+		repository.NewFavoriteRepo,
+		repository.NewCartRepo,
+		repository.NewUserOrderRepo,
+
 		service.NewUserService,
 
 		service.NewRoleService,
@@ -55,6 +62,10 @@ func InitWebServer() *App {
 		service.NewStatsService,
 		service.NewLoginLogService,
 		service.NewUserProductService,
+		service.NewFavoriteService,
+		service.NewCartService,
+		service.NewUserOrderService,
+
 		wire.Bind(new(service.UserServiceInterface), new(*service.UserService)),
 		web.NewUserHandler,
 		web.NewRoleHandler,
@@ -67,6 +78,10 @@ func InitWebServer() *App {
 		web.NewAdminStatsHandler,
 		web.NewAdminLoginLogHandler,
 		web.NewUserProductHandler,
+		web.NewUserFavoriteHandler,
+		web.NewUserCartHandler,
+		web.NewUserOrderHandler,
+
 		wire.Struct(new(App), "*"),
 	)
 	return new(App)

@@ -23,6 +23,9 @@ func InitGin(
 	UserProductHdl *web.UserProductHandler,
 	AdminLoginLogHdl *web.AdminLoginLogHandler,
 	AdminStatsHdl *web.AdminStatsHandler,
+	userFavoriteHdl *web.UserFavoriteHandler,
+	userCartHandler *web.UserCartHandler,
+	userOrderHandler *web.UserOrderHandler,
 
 ) *gin.Engine {
 
@@ -41,6 +44,9 @@ func InitGin(
 	UserProductHdl.RegisterUserProductRouters(server)
 	AdminLoginLogHdl.RegisterAdminLoginLogRouters(server)
 	AdminStatsHdl.RegisterAdminStatsRouters(server)
+	userFavoriteHdl.RegisterUserFavoriteRouters(server)
+	userCartHandler.RegisterUserCartRouters(server)
+	userOrderHandler.RegisterUserOrderRouters(server)
 	return server
 }
 
