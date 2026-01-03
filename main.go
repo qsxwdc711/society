@@ -7,5 +7,5 @@ func main() {
 
 	app := InitWebServer()
 	ioc.InitApiColl(app.server, app.DB)
-	app.server.Run(":9999")
+	app.server.Run("0.0.0.0:9999")
 }
