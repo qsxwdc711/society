@@ -9,22 +9,23 @@ import (
 )
 
 func InitMongodb() *mongo.Client {
-	type Config struct {
-		Account  string `yaml:"account"`
-		Address  string `yaml:"address"`
-		Port     string `yaml:"port"`
-		Password string `yaml:"password"`
+	uri := viper.GetString("mongo.uri")
+	if uri == "" {
+		panic("mongo.uri is empty")
 	}
-	var config Config
-	if err := viper.UnmarshalKey("mongo", &config); err != nil {
-		panic(err)
-	}
-	// 拼接 URL 时补充 authSource
-	url := "mongodb://" + config.Account + ":" + config.Password + "@" + config.Address + ":" + config.Port
-	ClientOptions := options.Client().ApplyURI(url)
-	client, err := mongo.Connect(context.Background(), ClientOptions)
+
+	client, err := mongo.Connect(
+		context.Background(),
+		options.Client().ApplyURI(uri),
+	)
 	if err != nil {
 		panic(err)
 	}
+
+	// 可选：启动时直接 ping，提前暴露配置错误
+	if err := client.Ping(context.Background(), nil); err != nil {
+		panic(err)
+	}
+
 	return client
 }
