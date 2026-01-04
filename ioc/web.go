@@ -26,7 +26,7 @@ func InitGin(
 	userFavoriteHdl *web.UserFavoriteHandler,
 	userCartHandler *web.UserCartHandler,
 	userOrderHandler *web.UserOrderHandler,
-
+	userWalletHdl *web.UserWalletHandler,
 ) *gin.Engine {
 
 	server := gin.New()        // ❗不使用 gin.Default()
@@ -47,6 +47,7 @@ func InitGin(
 	userFavoriteHdl.RegisterUserFavoriteRouters(server)
 	userCartHandler.RegisterUserCartRouters(server)
 	userOrderHandler.RegisterUserOrderRouters(server)
+	userWalletHdl.RegisterUserWalletRouters(server)
 	return server
 }
 
