@@ -78,7 +78,13 @@ func InitWebServer() *App {
 	userOrderRepoInterface := repository.NewUserOrderRepo(userOrderDaoInterface)
 	userOrderInterface := service.NewUserOrderService(userOrderRepoInterface)
 	userOrderHandler := web.NewUserOrderHandler(userOrderInterface)
-	engine := ioc.InitGin(v, userHandler, roleHandler, logHandler, apiHandler, adminProductHandler, adminOrderHandler, adminCategoryHandler, adminPromotionHandler, userProductHandler, adminLoginLogHandler, adminStatsHandler, userFavoriteHandler, userCartHandler, userOrderHandler)
+	walletDaoInterface := dao.NewWalletDao(client)
+	walletRepoInterface := repository.NewWalletRepo(walletDaoInterface)
+	billDaoInterface := dao.NewBillDao(client)
+	billRepoInterface := repository.NewBillRepo(billDaoInterface)
+	walletServiceInterface := service.NewWalletService(walletRepoInterface, billRepoInterface, userRepoInterface, client)
+	userWalletHandler := web.NewUserWalletHandler(walletServiceInterface)
+	engine := ioc.InitGin(v, userHandler, roleHandler, logHandler, apiHandler, adminProductHandler, adminOrderHandler, adminCategoryHandler, adminPromotionHandler, userProductHandler, adminLoginLogHandler, adminStatsHandler, userFavoriteHandler, userCartHandler, userOrderHandler, userWalletHandler)
 	cmdable := ioc.InitRedis()
 	app := &App{
 		server: engine,
